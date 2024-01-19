@@ -47,9 +47,10 @@ func (v SocketValidator) ValidateString(ctx context.Context, req validator.Strin
 }
 
 type SSHTunnelDataSourceModel struct {
-	Id     types.String   `tfsdk:"id"`
-	Remote *EndpointModel `tfsdk:"remote"`
-	Local  *EndpointModel `tfsdk:"local"`
+	Id             types.String   `tfsdk:"id"`
+	ConnectionName types.String   `tfsdk:"connection_name"`
+	Remote         *EndpointModel `tfsdk:"remote"`
+	Local          *EndpointModel `tfsdk:"local"`
 }
 
 type SSHTunnelDataSource struct {
@@ -70,6 +71,10 @@ func (d *SSHTunnelDataSource) Schema(_ context.Context, _ datasource.SchemaReque
 			"id": schema.StringAttribute{
 				Computed:    true,
 				Description: "Tunnel identifier",
+			},
+			"connection_name": schema.StringAttribute{
+				Optional:    true,
+				Description: "Tunnel Connection Name",
 			},
 			"remote": schema.SingleNestedAttribute{
 				Required:    true,
@@ -199,12 +204,22 @@ func (d *SSHTunnelDataSource) Read(ctx context.Context, req datasource.ReadReque
 		proto = "unix"
 	}
 
+	var connectionName types.String
+	if !d.tunnel.ConnectionName.IsNull() {
+		connectionName = d.tunnel.ConnectionName
+	}
+	if !data.ConnectionName.IsNull() {
+		connectionName = data.ConnectionName
+	}
+	log.Printf("[DEBUG] Determined that connectionName is %s", connectionName)
+
 	tunnel := &ssh.SSHTunnel{
-		User:   d.tunnel.User,
-		Auth:   d.tunnel.Auth,
-		Server: d.tunnel.Server,
-		Local:  data.Local.ToEndpoint(),
-		Remote: data.Remote.ToEndpoint(),
+		ConnectionName: connectionName,
+		User:           d.tunnel.User,
+		Auth:           d.tunnel.Auth,
+		Server:         d.tunnel.Server,
+		Local:          data.Local.ToEndpoint(),
+		Remote:         data.Remote.ToEndpoint(),
 	}
 
 	tunnelServer := ssh.NewSSHTunnelServer(tunnel)
@@ -214,12 +229,18 @@ func (d *SSHTunnelDataSource) Read(ctx context.Context, req datasource.ReadReque
 		return
 	}
 
+	var serviceName string
 	hash, err := hashstructure.Hash(tunnel.Remote, hashstructure.FormatV2, nil)
 	if err != nil {
 		resp.Diagnostics.AddError("rpc service name error", err.Error())
 	}
-
-	serviceName := fmt.Sprintf("SSHTunnelServer.%d", hash)
+	log.Printf("[DEBUG] generated hash=\"%d\", provided connection_name=\"%s\"", hash, d.tunnel.ConnectionName)
+	if d.tunnel.ConnectionName.IsNull() {
+		serviceName = fmt.Sprintf("SSHTunnelServer.%d", hash)
+	} else {
+		serviceName = fmt.Sprintf("SSHTunnelServer.%s", d.tunnel.ConnectionName)
+	}
+	log.Printf("[DEBUG] Service Name \"%s\"", serviceName)
 
 	if err = rpc.RegisterName(serviceName, tunnelServer); err != nil {
 		resp.Diagnostics.AddError("rpc registration error", err.Error())

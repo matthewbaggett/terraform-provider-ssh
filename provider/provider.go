@@ -48,9 +48,10 @@ func (e *EndpointModel) ToEndpoint() ssh.Endpoint {
 var _ provider.Provider = &SSHProvider{}
 
 type SSHProviderModel struct {
-	User   types.String          `tfsdk:"user"`
-	Auth   *SSHProviderAuthModel `tfsdk:"auth"`
-	Server *GenericEndpointModel `tfsdk:"server"`
+	User           types.String          `tfsdk:"user"`
+	ConnectionName types.String          `tfsdk:"connection_name"`
+	Auth           *SSHProviderAuthModel `tfsdk:"auth"`
+	Server         *GenericEndpointModel `tfsdk:"server"`
 }
 
 type SSHProviderAuthModel struct {
@@ -77,6 +78,10 @@ func (p *SSHProvider) Schema(ctx context.Context, req provider.SchemaRequest, re
 			"user": schema.StringAttribute{
 				Optional:    true,
 				Description: "SSH connection username",
+			},
+			"connection_name": schema.StringAttribute{
+				Optional:    true,
+				Description: "SSH connection label",
 			},
 			"auth": schema.SingleNestedAttribute{
 				Description: "SSH server auth",
@@ -156,7 +161,8 @@ func (p *SSHProvider) Configure(ctx context.Context, req provider.ConfigureReque
 		return
 	}
 	sshTunnel := ssh.SSHTunnel{
-		Server: data.Server.ToEndpoint(),
+		Server:         data.Server.ToEndpoint(),
+		ConnectionName: data.ConnectionName,
 	}
 	if data.User.ValueString() != "" {
 		sshTunnel.User = data.User.ValueString()
@@ -173,7 +179,6 @@ func (p *SSHProvider) Configure(ctx context.Context, req provider.ConfigureReque
 	if data.Auth.Sock.ValueString() != "" {
 		authSock = data.Auth.Sock.ValueString()
 	}
-
 	sshTunnel.Auth = []ssh.SSHAuth{}
 	privateKey := ssh.SSHPrivateKey{}
 	if data.Auth.PrivateKey.Content.ValueString() != "" {

@@ -15,7 +15,7 @@ Provider can be automatically installed using Terraform >= 0.13 by providing a `
 terraform {
     required_providers {
         ssh = {
-            source = "AndrewChubatiuk/ssh"
+            source = "matthewbaggett/ssh"
         }
     }
 }

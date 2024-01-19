@@ -1,3 +1,4 @@
+.idea
 crash.log
 terraform-provider-*
 terraform.d
@@ -8,3 +9,5 @@ terraform.d
 *.pb.go
 /release
 /vendor
+/test/tf-log.json
+/test/.terraform.lock.hcl

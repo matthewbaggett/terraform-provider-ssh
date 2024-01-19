@@ -38,7 +38,7 @@ func main() {
 		flag.BoolVar(&debug, "debug", false, "enable provider debug")
 		flag.Parse()
 		err := providerserver.Serve(context.Background(), provider.New(), providerserver.ServeOpts{
-			Address: "registry.terraform.io/AndrewChubatiuk/ssh",
+			Address: "registry.terraform.io/matthewbaggett/ssh",
 			Debug:   debug,
 		})
 		if err != nil {

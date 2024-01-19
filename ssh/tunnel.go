@@ -4,6 +4,7 @@ import (
 	"encoding/gob"
 	"errors"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"io"
 	"log"
 	"net"
@@ -120,11 +121,12 @@ type SSHAuth interface {
 }
 
 type SSHTunnel struct {
-	Local  Endpoint
-	Remote Endpoint
-	Server Endpoint
-	User   string
-	Auth   []SSHAuth
+	Local          Endpoint
+	Remote         Endpoint
+	Server         Endpoint
+	User           string
+	Auth           []SSHAuth
+	ConnectionName types.String
 }
 
 func (st *SSHTunnel) Run(proto, serverName, serverAddress string, ppid int) error {
