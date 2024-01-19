@@ -1,5 +1,5 @@
 provider "ssh" {
-  alias = "left"
+  alias = "ssh_left"
   server = {
     host = "127.0.0.1"
     port = "22"
@@ -13,7 +13,7 @@ provider "ssh" {
 }
 
 provider "ssh" {
-  alias = "right"
+  alias = "ssh_right"
   server = {
     host = "127.0.0.1"
     port = "22"
@@ -26,16 +26,19 @@ provider "ssh" {
   }
 }
 data "ssh_tunnel" "docker_left" {
-  connection_name = "left"
-  provider = ssh.left
+  connection_name = "1234"
+  provider = ssh.ssh_left
   remote = {
-    socket = "/var/run/docker.sock"
+    host = "127.0.0.1"
+    port = 22
   }
 }
+
 data "ssh_tunnel" "docker_right" {
-  connection_name = "left"
-  provider = ssh.right
+  connection_name = "4321"
+  provider = ssh.ssh_right
   remote = {
-    socket = "/var/run/docker.sock"
+    host = "127.0.0.1"
+    port = 22
   }
 }

@@ -204,12 +204,12 @@ func (d *SSHTunnelDataSource) Read(ctx context.Context, req datasource.ReadReque
 		proto = "unix"
 	}
 
-	var connectionName types.String
-	if !d.tunnel.ConnectionName.IsNull() {
+	var connectionName string
+	if d.tunnel.ConnectionName != "" {
 		connectionName = d.tunnel.ConnectionName
 	}
 	if !data.ConnectionName.IsNull() {
-		connectionName = data.ConnectionName
+		connectionName = data.ConnectionName.String()
 	}
 	log.Printf("[DEBUG] Determined that connectionName is %s", connectionName)
 
@@ -234,13 +234,13 @@ func (d *SSHTunnelDataSource) Read(ctx context.Context, req datasource.ReadReque
 	if err != nil {
 		resp.Diagnostics.AddError("rpc service name error", err.Error())
 	}
-	log.Printf("[DEBUG] generated hash=\"%d\", provided connection_name=\"%s\"", hash, d.tunnel.ConnectionName)
-	if d.tunnel.ConnectionName.IsNull() {
+	log.Printf("[DEBUG] generated hash=%d, provided connection_name=%s", hash, connectionName)
+	if connectionName != "" {
 		serviceName = fmt.Sprintf("SSHTunnelServer.%d", hash)
 	} else {
-		serviceName = fmt.Sprintf("SSHTunnelServer.%s", d.tunnel.ConnectionName)
+		serviceName = fmt.Sprintf("SSHTunnelServer.%s", connectionName)
 	}
-	log.Printf("[DEBUG] Service Name \"%s\"", serviceName)
+	log.Printf("[DEBUG] Service Name %s", serviceName)
 
 	if err = rpc.RegisterName(serviceName, tunnelServer); err != nil {
 		resp.Diagnostics.AddError("rpc registration error", err.Error())
@@ -265,6 +265,12 @@ func (d *SSHTunnelDataSource) Read(ctx context.Context, req datasource.ReadReque
 		fmt.Sprintf("TF_SSH_PROVIDER_TUNNEL_PPID=%d", os.Getppid()),
 	}
 	cmd.Env = append(cmd.Env, env...)
+
+	log.Printf("[DEBUG] Command args: TF_SSH_PROVIDER_TUNNEL_PROTO=%s", proto)
+	log.Printf("[DEBUG] Command args: TF_SSH_PROVIDER_TUNNEL_ADDR=%s", tunnelServerInbound.Addr().String())
+	log.Printf("[DEBUG] Command args: TF_SSH_PROVIDER_TUNNEL_NAME=%s", serviceName)
+	log.Printf("[DEBUG] Command args: TF_SSH_PROVIDER_TUNNEL_PPID=%d", os.Getppid())
+
 	err = cmd.Start()
 	if err != nil {
 		resp.Diagnostics.AddError("proxy start error", err.Error())
@@ -289,6 +295,7 @@ func (d *SSHTunnelDataSource) Read(ctx context.Context, req datasource.ReadReque
 	for !tunnelServer.Ready {
 		log.Printf("[DEBUG] waiting for local port availability")
 		if commandError != nil {
+			log.Printf("[ERROR] Server Proxy Error: Command Error %s:", commandError)
 			resp.Diagnostics.AddError("server proxy error", commandError.Error())
 			return
 		}

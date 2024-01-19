@@ -162,7 +162,7 @@ func (p *SSHProvider) Configure(ctx context.Context, req provider.ConfigureReque
 	}
 	sshTunnel := ssh.SSHTunnel{
 		Server:         data.Server.ToEndpoint(),
-		ConnectionName: data.ConnectionName,
+		ConnectionName: data.ConnectionName.String(),
 	}
 	if data.User.ValueString() != "" {
 		sshTunnel.User = data.User.ValueString()
