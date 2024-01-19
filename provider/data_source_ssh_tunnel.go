@@ -48,7 +48,7 @@ func (v SocketValidator) ValidateString(ctx context.Context, req validator.Strin
 
 type SSHTunnelDataSourceModel struct {
 	Id             types.String   `tfsdk:"id"`
-	ConnectionName types.String   `tfsdk:"connection_name"`
+	ConnectionName string         `tfsdk:"connection_name"`
 	Remote         *EndpointModel `tfsdk:"remote"`
 	Local          *EndpointModel `tfsdk:"local"`
 }
@@ -208,8 +208,8 @@ func (d *SSHTunnelDataSource) Read(ctx context.Context, req datasource.ReadReque
 	if d.tunnel.ConnectionName != "" {
 		connectionName = d.tunnel.ConnectionName
 	}
-	if !data.ConnectionName.IsNull() {
-		connectionName = data.ConnectionName.String()
+	if data.ConnectionName != "" {
+		connectionName = data.ConnectionName
 	}
 	log.Printf("[DEBUG] Determined that connectionName is %s", connectionName)
 
@@ -308,6 +308,7 @@ func (d *SSHTunnelDataSource) Read(ctx context.Context, req datasource.ReadReque
 	data.Local.Port = types.Int64Value(int64(tunnel.Local.Port))
 	data.Local.Address = types.StringValue(tunnel.Local.Address())
 	data.Id = types.StringValue(tunnel.Local.Address())
+	data.ConnectionName = tunnel.ConnectionName
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
 	return

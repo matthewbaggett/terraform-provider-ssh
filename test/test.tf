@@ -42,3 +42,31 @@ data "ssh_tunnel" "docker_right" {
     port = 22
   }
 }
+output "left" {
+  value = {
+    left: {
+      id : data.ssh_tunnel.docker_left.id,
+      connection_name: data.ssh_tunnel.docker_left.connection_name,
+      local_address: {
+        host: data.ssh_tunnel.docker_left.local.host
+        port: data.ssh_tunnel.docker_left.local.port
+      },
+      remote_address : {
+        host : data.ssh_tunnel.docker_left.remote.host
+        port : data.ssh_tunnel.docker_left.remote.port
+      },
+    }
+    right: {
+      id : data.ssh_tunnel.docker_right.id,
+      connection_name: data.ssh_tunnel.docker_right.connection_name,
+      local_address: {
+        host: data.ssh_tunnel.docker_right.local.host
+        port: data.ssh_tunnel.docker_right.local.port
+      },
+      remote_address : {
+        host : data.ssh_tunnel.docker_right.remote.host
+        port : data.ssh_tunnel.docker_right.remote.port
+      },
+    },
+  }
+}
