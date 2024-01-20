@@ -49,6 +49,10 @@ signs:
       - "--detach-sign"
       - "${artifact}"
 release:
+  disable: false
+  github:
+    owner: matthewbaggett
+    name: terraform-provider-ssh
   # If you want to manually examine the release before its live, uncomment this line:
   # draft: true
 changelog:

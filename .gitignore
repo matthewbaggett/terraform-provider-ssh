@@ -11,3 +11,4 @@ terraform.d
 /vendor
 /test/tf-log.json
 /test/.terraform.lock.hcl
+/test/*.log
