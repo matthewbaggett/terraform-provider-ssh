@@ -26,7 +26,7 @@ provider "ssh" {
   }
 }
 data "ssh_tunnel" "docker_left" {
-  connection_name = "1234"
+  connection_name = "shark_fin_pastry"
   provider = ssh.ssh_left
   remote = {
     host = "127.0.0.1"
@@ -35,7 +35,7 @@ data "ssh_tunnel" "docker_left" {
 }
 
 data "ssh_tunnel" "docker_right" {
-  connection_name = "4321"
+  connection_name = "summers_on_mars"
   provider = ssh.ssh_right
   remote = {
     host = "127.0.0.1"

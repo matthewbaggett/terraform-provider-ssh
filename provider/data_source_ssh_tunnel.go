@@ -235,7 +235,7 @@ func (d *SSHTunnelDataSource) Read(ctx context.Context, req datasource.ReadReque
 		resp.Diagnostics.AddError("rpc service name error", err.Error())
 	}
 	log.Printf("[DEBUG] generated hash=%d, provided connection_name=%s", hash, connectionName)
-	if connectionName != "" {
+	if connectionName == "" {
 		serviceName = fmt.Sprintf("SSHTunnelServer.%d", hash)
 	} else {
 		serviceName = fmt.Sprintf("SSHTunnelServer.%s", connectionName)

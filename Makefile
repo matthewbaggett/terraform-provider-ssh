@@ -8,7 +8,9 @@ install: build
 test: build install
 	-rm -f test/.terraform.lock.hcl test/tf-log.json
 	terraform -chdir=test init -upgrade
-	TF_LOG=DEBUG terraform -chdir=test apply --auto-approve
+	rm test/tf-log.log
+	TF_LOG_PATH=test/tf-log.log TF_LOG=DEBUG terraform -chdir=test apply --auto-approve
+	grep "Service Name SSHTunnelServer." test/tf-log.log
 	#'-TF_LOG_PATH=test/tf-log.json TF_LOG=JSON terraform -chdir=test apply --auto-approve
 	#jq --slurp '.[]|select(."@module")|select(."@module" | startswith("provider.terraform-provider-ssh"))' test/tf-log.json . | jq -r -s '.[]| ."@message"'
 
